@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
+    "client": "vite",
+    "server": "cd ../server && go run main.go",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
