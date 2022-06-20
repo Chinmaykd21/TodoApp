@@ -14,10 +14,10 @@ type Todo struct {
 	IsCompleted bool   `json:"isCompleted"`
 }
 
-// type errMessage struct {
-// 	Code    int    `json:"errCode"`
-// 	Message string `json:"errMessage"`
-// }
+type errMessage struct {
+	Code    int    `json:"errCode"`
+	Message string `json:"errMessage"`
+}
 
 func main() {
 	// an array of Todo
@@ -31,24 +31,24 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
-	// To check the health of the server
-	app.Get("/healthcheck", func(c *fiber.Ctx) error {
-		return c.SendString("OK")
-	})
-
 	// To return all the posts that are available
-	app.Get("/api/todos", func(c *fiber.Ctx) error {
+	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(todos)
 	})
 
 	// Add new todo list
-	app.Post("/api/todos", func(c *fiber.Ctx) error {
+	app.Post("/", func(c *fiber.Ctx) error {
 		// create a todo
 		todo := &Todo{}
 
 		// try to parse that todo, if it returns an error, return that error
 		if err := c.BodyParser(todo); err != nil {
-			return err
+			errResponse := &errMessage{
+				Code:    1,
+				Message: "Invalid Todo",
+			}
+
+			return c.JSON(*errResponse)
 		}
 
 		// otherwise, give a unique id to that todo
@@ -61,8 +61,8 @@ func main() {
 		return c.JSON(todos)
 	})
 
-	// To get specific id from the url
-	app.Patch("api/todos/:id?/toggle", func(c *fiber.Ctx) error {
+	// To update specific task list from the todos list
+	app.Patch("/:id?/toggle", func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
 
 		// if there is an error then return
@@ -75,18 +75,16 @@ func main() {
 		for index, todo := range todos {
 			if todo.Id == id {
 				todos[index].IsCompleted = !todos[index].IsCompleted
-				// return c.JSON(todos)
-				break
+				return c.JSON(todos)
 			}
 		}
 
-		// errResponse := &errMessage{
-		// 	Code:    123,
-		// 	Message: "Invalid ID",
-		// }
+		errResponse := &errMessage{
+			Code:    2,
+			Message: "Invalid ID",
+		}
 
-		// return c.JSON(*errResponse)
-		return c.JSON(todos)
+		return c.JSON(*errResponse)
 	})
 
 	// To make server listen on specific port

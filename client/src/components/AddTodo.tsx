@@ -2,7 +2,8 @@ import { Button, Group, Modal, Textarea, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/hooks";
 import { useState } from "react";
 import { KeyedMutator } from "swr";
-import { ENDPOINT, Todo } from "../App";
+import { Todo } from "../interfaces/todoInterface";
+import { ENDPOINT } from "../utilities/utilities";
 
 export const AddTodo = ({ mutate }: { mutate: KeyedMutator<Todo[]> }) => {
   // Initialize an empty form

@@ -1,7 +1,8 @@
 import { List, ThemeIcon } from "@mantine/core";
 import { CheckCircleFillIcon } from "@primer/octicons-react";
 import { KeyedMutator } from "swr";
-import { ENDPOINT, Todo } from "../App";
+import { Todo } from "../interfaces/todoInterface";
+import { ENDPOINT } from "../utilities/utilities";
 
 export const ShowTodo = ({
   data,
