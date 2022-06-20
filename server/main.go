@@ -32,12 +32,12 @@ func main() {
 	}))
 
 	// To return all the posts that are available
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/api/todos", func(c *fiber.Ctx) error {
 		return c.JSON(todos)
 	})
 
 	// Add new todo list
-	app.Post("/", func(c *fiber.Ctx) error {
+	app.Post("/api/todos", func(c *fiber.Ctx) error {
 		// create a todo
 		todo := &Todo{}
 
@@ -62,7 +62,7 @@ func main() {
 	})
 
 	// To update specific task list from the todos list
-	app.Patch("/:id?/toggle", func(c *fiber.Ctx) error {
+	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
 
 		// if there is an error then return
