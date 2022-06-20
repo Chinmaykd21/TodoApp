@@ -19,8 +19,6 @@ This app is created to learn about creating a server using Golang.
 
 ## Authors
 
-Contributors names and contact info
-
 Chinmay Kulkarni | [@Chinmaykd21](https://github.com/Chinmaykd21)
 
 ## Acknowledgments
