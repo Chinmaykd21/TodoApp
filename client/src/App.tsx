@@ -1,9 +1,8 @@
 import "./App.css";
 import useSWR from "swr";
 import { AddTodo } from "./components/AddTodo";
-import { Box, List, ThemeIcon } from "@mantine/core";
-import fetch from "unfetch";
-import { CheckCircleFillIcon } from "@primer/octicons-react";
+import { Box } from "@mantine/core";
+import { ShowTodo } from "./components/ShowTodo";
 
 export interface Todo {
   id: number;
@@ -14,24 +13,13 @@ export interface Todo {
 
 export const ENDPOINT: string = "http://localhost:4000";
 
-const fetcher = (url: string) =>
+export const fetcher = (url: string) =>
   fetch(`${ENDPOINT}/${url}`).then((res) => {
     return res.json();
   });
 
 function App() {
   const { data, mutate } = useSWR<Todo[]>("api/todos", fetcher);
-
-  const toggleTodo = async (id: number) => {
-    const updatedTodo = await fetch(`${ENDPOINT}/api/todos/${id}/toggle`, {
-      method: "PATCH",
-      headers: {
-        "Content-type": "application/json",
-      },
-    }).then((res) => res.json());
-
-    mutate(updatedTodo);
-  };
 
   return (
     <Box
@@ -42,29 +30,7 @@ function App() {
         margin: "0 auto",
       })}
     >
-      <List spacing="xs" size="sm" mb={12} center>
-        {data?.map((todo) => {
-          return (
-            <List.Item
-              onClick={() => toggleTodo(todo.id)}
-              key={`todo__${todo.id}`}
-              icon={
-                todo.isCompleted ? (
-                  <ThemeIcon color="teal" size={24} radius="xl">
-                    <CheckCircleFillIcon size={20} />
-                  </ThemeIcon>
-                ) : (
-                  <ThemeIcon color="gray" size={24} radius="xl">
-                    <CheckCircleFillIcon size={20} />
-                  </ThemeIcon>
-                )
-              }
-            >
-              <h1>{todo.title}</h1>
-            </List.Item>
-          );
-        })}
-      </List>
+      <ShowTodo data={data} mutate={mutate} />
       <AddTodo mutate={mutate} />
     </Box>
   );

@@ -14,6 +14,11 @@ type Todo struct {
 	IsCompleted bool   `json:"isCompleted"`
 }
 
+// type errMessage struct {
+// 	Code    int    `json:"errCode"`
+// 	Message string `json:"errMessage"`
+// }
+
 func main() {
 	// an array of Todo
 	todos := []Todo{}
@@ -30,11 +35,6 @@ func main() {
 	app.Get("/healthcheck", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
-
-	// Home route
-	// app.Get("/", func(c *fiber.Ctx) error {
-	// 	return c.JSON(todos)
-	// })
 
 	// To return all the posts that are available
 	app.Get("/api/todos", func(c *fiber.Ctx) error {
@@ -75,10 +75,17 @@ func main() {
 		for index, todo := range todos {
 			if todo.Id == id {
 				todos[index].IsCompleted = !todos[index].IsCompleted
+				// return c.JSON(todos)
 				break
 			}
 		}
 
+		// errResponse := &errMessage{
+		// 	Code:    123,
+		// 	Message: "Invalid ID",
+		// }
+
+		// return c.JSON(*errResponse)
 		return c.JSON(todos)
 	})
 
