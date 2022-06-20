@@ -2,7 +2,7 @@
 
 ### Description
 
-This app is created to learn about creating a server using Golang.
+This app is created to learn about creating a server using Golang. The technologies used are Go Fiber, SWR, TypeScript, Mantine (Core & Hooks), vite.
 
 ### Getting Started
 

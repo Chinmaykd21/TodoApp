@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"net/http"
 
+	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
@@ -12,11 +14,6 @@ type Todo struct {
 	Title       string `json:"title"`
 	Body        string `json:"body"`
 	IsCompleted bool   `json:"isCompleted"`
-}
-
-type errMessage struct {
-	Code    int    `json:"errCode"`
-	Message string `json:"errMessage"`
 }
 
 func main() {
@@ -43,12 +40,10 @@ func main() {
 
 		// try to parse that todo, if it returns an error, return that error
 		if err := c.BodyParser(todo); err != nil {
-			errResponse := &errMessage{
-				Code:    1,
-				Message: "Invalid Todo",
-			}
-
-			return c.JSON(*errResponse)
+			errResponse := serverErrors.New(serverErrors.BodyParse, "")
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
+			return err
 		}
 
 		// otherwise, give a unique id to that todo
@@ -61,13 +56,19 @@ func main() {
 		return c.JSON(todos)
 	})
 
+	// To delete the task which are completed in correctly
+	// app.Delete("/api/todos/:id?/delete")
+
 	// To update specific task list from the todos list
 	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
 
 		// if there is an error then return
 		if err != nil {
-			return c.SendString("Invalid id")
+			errResponse := serverErrors.New(serverErrors.ParseInt, "")
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
+			return err
 		}
 
 		// otherwise iterate through all the todos & update
@@ -79,12 +80,10 @@ func main() {
 			}
 		}
 
-		errResponse := &errMessage{
-			Code:    2,
-			Message: "Invalid ID",
-		}
-
-		return c.JSON(*errResponse)
+		errResponse := serverErrors.New(serverErrors.InvalidID, "")
+		c.Status(http.StatusUnprocessableEntity)
+		_, err = c.WriteString(errResponse.Error())
+		return err
 	})
 
 	// To make server listen on specific port
