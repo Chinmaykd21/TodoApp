@@ -3,10 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 )
 
 type Todo struct {
@@ -21,6 +23,12 @@ func main() {
 	todos := []Todo{}
 
 	app := fiber.New()
+
+	// load environment variables from env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Could not read from the env file")
+	}
 
 	// using middleware to solve CORS issue
 	app.Use(cors.New(cors.Config{
@@ -87,5 +95,6 @@ func main() {
 	})
 
 	// To make server listen on specific port
-	log.Fatal(app.Listen(":4000"))
+	PORT := ":" + os.Getenv("SERVER_PORT")
+	log.Fatal(app.Listen(PORT))
 }
