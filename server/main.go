@@ -46,16 +46,21 @@ func main() {
 	defer client.Disconnect(ctx)
 
 	// TODO: Need to move these API calls to their own packages.
-	// To return all the posts that are available in our collection
+
+	// API route to get all todos from todos mongoDB collection
 	app.Get("/api/todos", func(c *fiber.Ctx) error {
 
-		// call function to get the records from the collection
-		obtainedTodos, err := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
+		// Get all todos from todos mongoDB collection
+		obtainedTodos, errResponse := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
 
-		if err != nil {
+		// If there is any error in finding the todos return 404
+		if errResponse != nil {
+			c.Status(http.StatusNotFound)
+			_, err = c.WriteString(errResponse.Error())
 			return err
 		}
 
+		// Return found todos to the client
 		return c.JSON(obtainedTodos)
 	})
 

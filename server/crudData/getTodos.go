@@ -2,6 +2,7 @@ package crudData
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
 	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
@@ -13,16 +14,18 @@ import (
 func GetAllTodos(ctx context.Context, c *fiber.Ctx, todos []customDataStructs.Todo, collectionTodos *mongo.Collection) (*[]customDataStructs.Todo, error) {
 	cursor, err := collectionTodos.Find(ctx, bson.M{})
 	if err != nil {
-		return &todos, err
+		errResponse := serverErrors.New(serverErrors.RetreivalError, "")
+		return &todos, errResponse
 	}
 
-	defer cursor.Close(ctx)
+	defer func() {
+		fmt.Println("Closing cursor")
+		cursor.Close(ctx)
+	}()
 
 	if err = cursor.All(ctx, &todos); err != nil {
 		errResponse := serverErrors.New(serverErrors.RetreivalError, "")
-		// c.Status(http.StatusUnprocessableEntity)
-		_, err = c.WriteString(errResponse.Error())
-		return &todos, err
+		return &todos, errResponse
 	}
 
 	return &todos, nil
