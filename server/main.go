@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/Chinmaykd21/TodoApp/server/crudData"
@@ -49,7 +50,7 @@ func main() {
 	app.Get("/api/todos", func(c *fiber.Ctx) error {
 
 		// call function to get the records from the collection
-		obtainedTodos, err := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
+		obtainedTodos, err := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
 
 		if err != nil {
 			return err
@@ -64,18 +65,18 @@ func main() {
 	// Add new todo list
 	app.Post("/api/todos", func(c *fiber.Ctx) error {
 
-		todosBefore, errBeforeNewTodo := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
+		todosBefore, errBeforeNewTodo := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
 		if errBeforeNewTodo != nil {
 			return errBeforeNewTodo
 		}
 
-		err := crudData.AddTodoDocument(ctx, c, *todosBefore, collectionTodos)
+		err := crudData.AddToDo(ctx, c, *todosBefore, collectionTodos)
 
 		if err != nil {
 			return err
 		}
 
-		todosAfter, errAfterNewTodo := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
+		todosAfter, errAfterNewTodo := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
 		if errAfterNewTodo != nil {
 			return errAfterNewTodo
 		}
@@ -84,7 +85,24 @@ func main() {
 	})
 
 	// To delete the task which are completed in correctly
-	// app.Delete("/api/todos/:id?/delete")
+	app.Delete("/api/todos/:id?/delete", func(c *fiber.Ctx) error {
+		todoId, err := utilities.ParsingStringToInt(c, "id")
+
+		if err != nil {
+			return err
+		}
+
+		// finding & deleting the record
+		errResponse := crudData.DeleteTodo(ctx, c, todoId, collectionTodos)
+
+		if errResponse != nil {
+			c.Status(http.StatusNotFound)
+			_, err = c.WriteString(errResponse.Error())
+			return err
+		}
+
+		return c.JSON("Record deleted successfully")
+	})
 
 	// To update specific task list from the todos list
 	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
@@ -95,7 +113,7 @@ func main() {
 			return err
 		}
 
-		// Finding the record, FIXIT: remove this later
+		// Finding & updating the record
 		updatedRecord, err := crudData.UpdateTask(ctx, c, todoId, collectionTodos)
 		// If there is no error then find this record & update its status
 		if err != nil {

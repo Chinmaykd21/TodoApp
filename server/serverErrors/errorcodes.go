@@ -8,6 +8,7 @@ const (
 	InvalidID
 	InsertError
 	RetreivalError
+	RecordsNotFound
 )
 
 func (c ErrorCode) String() string {
@@ -22,6 +23,8 @@ func (c ErrorCode) String() string {
 		return "Cannot insert document to collection"
 	case RetreivalError:
 		return "Error while getting the documents from the collection"
+	case RecordsNotFound:
+		return "Could not find the records to delete"
 	default:
 		return "An Invalid ErrorCode"
 	}
