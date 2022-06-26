@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -42,8 +43,12 @@ func main() {
 	// Get the client & todo collection
 	client, collectionTodos := models.CreatConnection(ctx)
 
-	// We will disconnect our client instance at the end of the main function.
-	defer client.Disconnect(ctx)
+	// We will disconnect our client instance at the end of the main
+	// function.
+	defer func() {
+		fmt.Println("Closing the mongoDB client connection")
+		client.Disconnect(ctx)
+	}()
 
 	// TODO: Need to move these API calls to their own packages.
 
@@ -54,6 +59,7 @@ func main() {
 		obtainedTodos, errResponse := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
 
 		// If there is any error in finding the todos return 404
+		// to client
 		if errResponse != nil {
 			c.Status(http.StatusNotFound)
 			_, err = c.WriteString(errResponse.Error())
@@ -64,29 +70,39 @@ func main() {
 		return c.JSON(obtainedTodos)
 	})
 
-	// TODO: Make this function more efficient. Doing 2 calls to the same collection to get
-	// the data seems extremely inefficient
+	// TODO: Make this function more efficient. Doing 2 calls to the
+	// same collection to get the data seems extremely inefficient
 
-	// Add new todo list
+	// API route to add a new todo list to todos mongoDB collection
+	// & return all todos to client
 	app.Post("/api/todos", func(c *fiber.Ctx) error {
 
-		todosBefore, errBeforeNewTodo := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
-		if errBeforeNewTodo != nil {
-			return errBeforeNewTodo
-		}
+		// Getting todos before adding new todo to create a unique
+		// id for new todo
+		todosBefore, errResponse := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
 
-		err := crudData.AddToDo(ctx, c, *todosBefore, collectionTodos)
-
-		if err != nil {
+		// If there are any error while retreiving todos, return 404
+		// to client
+		if errResponse != nil {
+			c.Status(http.StatusNotFound)
+			_, err = c.WriteString(errResponse.Error())
 			return err
 		}
 
-		todosAfter, errAfterNewTodo := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
-		if errAfterNewTodo != nil {
-			return errAfterNewTodo
+		// Add new todo to todos mongoDB collection
+		errResponse = crudData.AddTodo(ctx, c, *todosBefore, collectionTodos)
+
+		// If there are any error while inserting new todo to todos
+		// mongoDB collection then return a custom error called
+		// InsertError & return that to client
+		if errResponse != nil {
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
+			return err
 		}
 
-		return c.JSON(todosAfter)
+		// Return new todos to client
+		return c.JSON(todos)
 	})
 
 	// To delete the task which are completed in correctly
