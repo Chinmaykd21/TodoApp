@@ -2,20 +2,17 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/Chinmaykd21/TodoApp/server/crudData"
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
+	"github.com/Chinmaykd21/TodoApp/server/models"
 	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
@@ -37,42 +34,16 @@ func main() {
 	// an empty array of Todo
 	todos := []customDataStructs.Todo{}
 
-	// get the mongoDB connection string
-	URI := os.Getenv("MONGO_CONNECTION_URL")
-	if URI == "" {
-		// TODO: should we use panic & recovery instead of log.fatal?
-		log.Fatal("MongoDB connection string cannot be empty")
-	}
+	// TODO: Why does this line causes "context deadline exceeded" error?
+	// ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	// defer cancel()
+	ctx := context.TODO()
 
-	// We wait for 5 seconds before we throw a timeout error
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
-	defer cancel()
-	fmt.Println("This is the ctx", ctx)
-
-	// connect to mongodb client
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(URI))
-	if err != nil {
-		// TODO: should we use panic & recovery instead of log.fatal?
-		log.Fatal("Cannot connect to the mongoDB", err)
-	}
-	fmt.Println("Sucessfully connected to mongoDB atlas")
-
-	// Try a ping to the client
-	// if err := client.Ping(ctx, nil); err != nil {
-	// 	// TODO: should we use panic & recovery instead of log.fatal?
-	// 	log.Fatal("Cannot ping the db connection", err)
-	// }
+	// Get the client & todo collection
+	client, collectionTodos := models.CreatConnection(ctx)
 
 	// We will disconnect our client instance at the end of the main function.
 	defer client.Disconnect(ctx)
-
-	// Create a database in mongoDB atlas
-	projectsDatabase := client.Database("projects")
-
-	// Create a collection for todo in database projects
-	collectionTodos := projectsDatabase.Collection("todos")
-
-	fmt.Println("Successfully created todos collection in projects database")
 
 	// To return all the posts that are available in our collection
 	app.Get("/api/todos", func(c *fiber.Ctx) error {
