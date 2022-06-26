@@ -3,13 +3,11 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/Chinmaykd21/TodoApp/server/crudData"
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
 	"github.com/Chinmaykd21/TodoApp/server/models"
-	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
@@ -45,6 +43,7 @@ func main() {
 	// We will disconnect our client instance at the end of the main function.
 	defer client.Disconnect(ctx)
 
+	// TODO: Need to move these API calls to their own packages.
 	// To return all the posts that are available in our collection
 	app.Get("/api/todos", func(c *fiber.Ctx) error {
 
@@ -58,52 +57,60 @@ func main() {
 		return c.JSON(obtainedTodos)
 	})
 
+	// TODO: Make this function more efficient. Doing 2 calls to the same collection to get
+	// the data seems extremely inefficient
+
 	// Add new todo list
 	app.Post("/api/todos", func(c *fiber.Ctx) error {
 
-		err := crudData.AddTodoDocument(ctx, c, todos, collectionTodos)
+		todosBefore, errBeforeNewTodo := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
+		if errBeforeNewTodo != nil {
+			return errBeforeNewTodo
+		}
+
+		err := crudData.AddTodoDocument(ctx, c, *todosBefore, collectionTodos)
 
 		if err != nil {
 			return err
 		}
 
-		obtainedTodos, err := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
-		if err != nil {
-			return err
+		todosAfter, errAfterNewTodo := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
+		if errAfterNewTodo != nil {
+			return errAfterNewTodo
 		}
 
-		return c.JSON(obtainedTodos)
+		return c.JSON(todosAfter)
 	})
 
 	// To delete the task which are completed in correctly
 	// app.Delete("/api/todos/:id?/delete")
 
 	// To update specific task list from the todos list
-	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
-		id, err := c.ParamsInt("id")
+	// app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
+	// 	id, err := c.ParamsInt("id")
 
-		// if there is an error then return
-		if err != nil {
-			errResponse := serverErrors.New(serverErrors.ParseInt, "")
-			c.Status(http.StatusUnprocessableEntity)
-			_, err = c.WriteString(errResponse.Error())
-			return err
-		}
+	// 	// if there is an error then return
+	// 	if err != nil {
+	// 		errResponse := serverErrors.New(serverErrors.ParseInt, "")
+	// 		c.Status(http.StatusUnprocessableEntity)
+	// 		_, err = c.WriteString(errResponse.Error())
+	// 		return err
+	// 	}
 
-		// otherwise iterate through all the todos & update
-		// todo when the id is matched
-		for index, todo := range todos {
-			if todo.TodoId == id {
-				todos[index].IsCompleted = !todos[index].IsCompleted
-				return c.JSON(todos)
-			}
-		}
+	// 	// otherwise iterate through all the todos & update
+	// 	// todo when the id is matched
+	// 	for index, todo := range todos {
+	// 		if todo.TodoId == id {
+	// 			todos[index].IsCompleted = !todos[index].IsCompleted
+	// 			return c.JSON(todos)
+	// 		}
+	// 	}
 
-		errResponse := serverErrors.New(serverErrors.InvalidID, "")
-		c.Status(http.StatusUnprocessableEntity)
-		_, err = c.WriteString(errResponse.Error())
-		return err
-	})
+	// 	errResponse := serverErrors.New(serverErrors.InvalidID, "")
+	// 	c.Status(http.StatusUnprocessableEntity)
+	// 	_, err = c.WriteString(errResponse.Error())
+	// 	return err
+	// })
 
 	// To make server listen on specific port
 	PORT := ":" + os.Getenv("SERVER_PORT")
