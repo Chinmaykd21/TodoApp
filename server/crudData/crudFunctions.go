@@ -2,6 +2,7 @@ package crudData
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
@@ -61,4 +62,42 @@ func AddTodoDocument(ctx context.Context, c *fiber.Ctx, todos []customDataStruct
 	}
 
 	return err
+}
+
+func UpdateTask(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *mongo.Collection) (*[]customDataStructs.Todo, error) {
+	// Initialize an empty todo
+	var todoToUpdate customDataStructs.Todo
+	var updatedTodoInSlice []customDataStructs.Todo
+
+	// Define filter condition to find the document with proper val
+	filter := bson.D{{Key: "todoId", Value: bson.D{{Key: "$eq", Value: todoId}}}}
+
+	// Find and store the id whose status is to be toggled to struct todo
+	err := collectionTodos.FindOne(ctx, filter).Decode(&todoToUpdate)
+	if err != nil {
+		return &updatedTodoInSlice, err
+	}
+
+	// Toggle its current state & store it
+	toggleIsCompleted := !todoToUpdate.IsCompleted
+
+	// Update condition
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "isCompleted", Value: toggleIsCompleted}}}}
+
+	// Update the same ID with the new state
+	updateResult, err := collectionTodos.UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		fmt.Println("There was an error while updating the document")
+		return &updatedTodoInSlice, err
+	}
+
+	if updateResult.MatchedCount != updateResult.ModifiedCount {
+		fmt.Println("Modified & Matched record count do not match")
+		return &updatedTodoInSlice, err
+	}
+
+	updatedTodoInSlice = append(updatedTodoInSlice, todoToUpdate)
+
+	return &updatedTodoInSlice, err
 }

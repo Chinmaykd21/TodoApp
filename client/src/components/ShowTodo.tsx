@@ -28,8 +28,8 @@ export const ShowTodo = ({
         data?.map((todo) => {
           return (
             <List.Item
-              onClick={() => toggleTodo(todo.id)}
-              key={`todo__${todo.id}`}
+              onClick={() => toggleTodo(todo.todoId)}
+              key={`todo__${todo.todoId}`}
               icon={
                 todo.isCompleted ? (
                   <ThemeIcon color="teal" size={24} radius="xl">

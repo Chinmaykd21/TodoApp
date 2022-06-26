@@ -8,6 +8,7 @@ import (
 	"github.com/Chinmaykd21/TodoApp/server/crudData"
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
 	"github.com/Chinmaykd21/TodoApp/server/models"
+	"github.com/Chinmaykd21/TodoApp/server/utilities"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
@@ -86,31 +87,23 @@ func main() {
 	// app.Delete("/api/todos/:id?/delete")
 
 	// To update specific task list from the todos list
-	// app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
-	// 	id, err := c.ParamsInt("id")
+	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
 
-	// 	// if there is an error then return
-	// 	if err != nil {
-	// 		errResponse := serverErrors.New(serverErrors.ParseInt, "")
-	// 		c.Status(http.StatusUnprocessableEntity)
-	// 		_, err = c.WriteString(errResponse.Error())
-	// 		return err
-	// 	}
+		todoId, err := utilities.ParsingStringToInt(c, "id")
 
-	// 	// otherwise iterate through all the todos & update
-	// 	// todo when the id is matched
-	// 	for index, todo := range todos {
-	// 		if todo.TodoId == id {
-	// 			todos[index].IsCompleted = !todos[index].IsCompleted
-	// 			return c.JSON(todos)
-	// 		}
-	// 	}
+		if err != nil {
+			return err
+		}
 
-	// 	errResponse := serverErrors.New(serverErrors.InvalidID, "")
-	// 	c.Status(http.StatusUnprocessableEntity)
-	// 	_, err = c.WriteString(errResponse.Error())
-	// 	return err
-	// })
+		// Finding the record, FIXIT: remove this later
+		updatedRecord, err := crudData.UpdateTask(ctx, c, todoId, collectionTodos)
+		// If there is no error then find this record & update its status
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(updatedRecord)
+	})
 
 	// To make server listen on specific port
 	PORT := ":" + os.Getenv("SERVER_PORT")
