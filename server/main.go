@@ -8,31 +8,34 @@ import (
 	"os"
 	"time"
 
+	"github.com/Chinmaykd21/TodoApp/server/crudData"
+	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
 	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Todo struct {
-	TodoId      int    `json:"id"`
-	Title       string `json:"title"`
-	Body        string `json:"body"`
-	IsCompleted bool   `json:"isCompleted"`
-}
-
 func main() {
+	// Create the fiber app instance
+	app := fiber.New()
+
+	// Using middleware to solve CORS issue
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: os.Getenv("ALLOWED_ORIGIN_CLIENT"),
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
 	// load environment variables from env file
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Could not read from the env file")
 	}
 
-	// an array of Todo
-	todos := []Todo{}
+	// an empty array of Todo
+	todos := []customDataStructs.Todo{}
 
 	// get the mongoDB connection string
 	URI := os.Getenv("MONGO_CONNECTION_URL")
@@ -42,8 +45,9 @@ func main() {
 	}
 
 	// We wait for 5 seconds before we throw a timeout error
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
+	fmt.Println("This is the ctx", ctx)
 
 	// connect to mongodb client
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(URI))
@@ -54,10 +58,10 @@ func main() {
 	fmt.Println("Sucessfully connected to mongoDB atlas")
 
 	// Try a ping to the client
-	if err := client.Ping(ctx, nil); err != nil {
-		// TODO: should we use panic & recovery instead of log.fatal?
-		fmt.Println("Cannot ping the db connection", err)
-	}
+	// if err := client.Ping(ctx, nil); err != nil {
+	// 	// TODO: should we use panic & recovery instead of log.fatal?
+	// 	log.Fatal("Cannot ping the db connection", err)
+	// }
 
 	// We will disconnect our client instance at the end of the main function.
 	defer client.Disconnect(ctx)
@@ -68,70 +72,36 @@ func main() {
 	// Create a collection for todo in database projects
 	collectionTodos := projectsDatabase.Collection("todos")
 
-	// Create the fiber app instance
-	app := fiber.New()
-
-	// Using middleware to solve CORS issue
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: os.Getenv("ALLOWED_ORIGIN_CLIENT"),
-		AllowHeaders: "Origin, Content-Type, Accept",
-	}))
+	fmt.Println("Successfully created todos collection in projects database")
 
 	// To return all the posts that are available in our collection
 	app.Get("/api/todos", func(c *fiber.Ctx) error {
 
-		cursor, err := collectionTodos.Find(ctx, bson.M{})
+		// call function to get the records from the collection
+		obtainedTodos, err := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
+
 		if err != nil {
 			return err
 		}
 
-		if err = cursor.All(ctx, &todos); err != nil {
-			errResponse := serverErrors.New(serverErrors.RetreivalError, "")
-			// c.Status(http.StatusUnprocessableEntity)
-			_, err = c.WriteString(errResponse.Error())
-			return err
-		}
-
-		return c.JSON(todos)
+		return c.JSON(obtainedTodos)
 	})
 
 	// Add new todo list
 	app.Post("/api/todos", func(c *fiber.Ctx) error {
-		// create a todo
-		todo := &Todo{}
 
-		// try to parse that todo, if it returns an error, return that error
-		if err := c.BodyParser(todo); err != nil {
-			errResponse := serverErrors.New(serverErrors.BodyParse, "")
-			c.Status(http.StatusUnprocessableEntity)
-			_, err = c.WriteString(errResponse.Error())
+		err := crudData.AddTodoDocument(ctx, c, todos, collectionTodos)
+
+		if err != nil {
 			return err
 		}
 
-		// new unique id for the todo
-		// idTodo := len(todos) + 1
+		obtainedTodos, err := crudData.GetAllDocuments(ctx, c, todos, collectionTodos)
+		if err != nil {
+			return err
+		}
 
-		// // insert first dummy todo document to the collection
-		// _, err := collectionTodos.InsertOne(ctx, bson.D{
-		// 	{Key: "id", Value: idTodo},
-		// 	{Key: "title", Value: &todo.Title},
-		// 	{Key: "body", Value: &todo.Body},
-		// 	{Key: "isCompleted", Value: &todo.IsCompleted},
-		// })
-		// if err != nil {
-		// 	// TODO: should we use panic & recovery instead of log.fatal?
-		// 	errResponse := serverErrors.New(serverErrors.InsertError, "")
-		// 	c.Status(http.StatusUnprocessableEntity)
-		// 	_, err = c.WriteString(errResponse.Error())
-		// 	return err
-		// }
-		// fmt.Println("Sucessfully inserted document to the collection todos.")
-
-		// // Query collection to get the latest todos from database
-		// // todos = collectionTodos.
-
-		// return new todos
-		return c.JSON(todos)
+		return c.JSON(obtainedTodos)
 	})
 
 	// To delete the task which are completed in correctly
