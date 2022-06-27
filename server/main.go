@@ -105,24 +105,33 @@ func main() {
 		return c.JSON(todos)
 	})
 
-	// To delete the task which are completed in correctly
+	// API route to delete matching todo from todos mongoDB collection
 	app.Delete("/api/todos/:id?/delete", func(c *fiber.Ctx) error {
-		todoId, err := utilities.ParsingStringToInt(c, "id")
+		// Converting string todoId to int
+		todoId, errResponse := utilities.ParsingStringToInt(c, "id")
 
-		if err != nil {
+		// If there are any error while doing type conversion return
+		// custom error called InvalidID to the client
+		if errResponse != nil {
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
 			return err
 		}
 
-		// finding & deleting the record
-		errResponse := crudData.DeleteTodo(ctx, c, todoId, collectionTodos)
+		// Use the converted todoId to delete the todo from todos
+		// mongoDB collection
+		errResponse = crudData.DeleteTodo(ctx, c, todoId, collectionTodos)
 
+		// If there are any error return while deleting the record
+		// from mongoDB collection, return 404 error to the client
 		if errResponse != nil {
 			c.Status(http.StatusNotFound)
 			_, err = c.WriteString(errResponse.Error())
 			return err
 		}
 
-		return c.JSON("Record deleted successfully")
+		// Otherwise return this success message to client
+		return c.JSON("Todo deleted successfully")
 	})
 
 	// To update specific task list from the todos list

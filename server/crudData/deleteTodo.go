@@ -9,16 +9,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// To delete a task based on todoId
 func DeleteTodo(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *mongo.Collection) error {
-	// Creating the filter to get the document which we want to delete from todos collection
+	// Filter to select only documents matching with todoId
 	filter := bson.D{{Key: "todoId", Value: bson.D{{Key: "$eq", Value: todoId}}}}
 
-	// To query collectionTodos and delete the document
+	// Delete the first matching todo from the todos mongoDB collection
 	deletedResult, err := collectionTodos.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return err
+		errResponse := serverErrors.New(serverErrors.RecordsNotFound, "")
+		return errResponse
 	}
 
 	if deletedResult.DeletedCount == 0 {
