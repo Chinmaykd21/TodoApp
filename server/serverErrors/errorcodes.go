@@ -9,6 +9,7 @@ const (
 	InsertError
 	RetreivalError
 	RecordsNotFound
+	UpdateError
 )
 
 func (c ErrorCode) String() string {
@@ -16,15 +17,17 @@ func (c ErrorCode) String() string {
 	case BodyParse:
 		return "Invalid Todo"
 	case ParseInt:
-		return "Cannot parse the ID"
+		return "Cannot parse ID"
 	case InvalidID:
 		return "Invalid ID"
 	case InsertError:
-		return "Cannot insert document to collection"
+		return "Cannot insert document to mongoDB collection"
 	case RetreivalError:
-		return "Error while getting the documents from the collection"
+		return "Error while getting the documents from mongoDB collection"
 	case RecordsNotFound:
-		return "Could not find the records to delete"
+		return "Could not find the docuemtns to delete in mongoDB collection"
+	case UpdateError:
+		return "Error while updating todo document in mongoDB collection"
 	default:
 		return "An Invalid ErrorCode"
 	}

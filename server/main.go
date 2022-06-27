@@ -136,17 +136,25 @@ func main() {
 
 	// To update specific task list from the todos list
 	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
+		// Converting string todoId to int
+		todoId, errResponse := utilities.ParsingStringToInt(c, "id")
 
-		todoId, err := utilities.ParsingStringToInt(c, "id")
-
-		if err != nil {
+		// If there are any error while doing type conversion return
+		// custom error called InvalidID to the client
+		if errResponse != nil {
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
 			return err
 		}
 
-		// Finding & updating the record
-		updatedRecord, err := crudData.UpdateTask(ctx, c, todoId, collectionTodos)
+		// Use the converted todoId to update the matching todo in
+		// todos mongoDB collection
+		updatedRecord, errResponse := crudData.UpdateTodo(ctx, c, todoId, collectionTodos)
+
 		// If there is no error then find this record & update its status
-		if err != nil {
+		if errResponse != nil {
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
 			return err
 		}
 

@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
+	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func UpdateTask(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *mongo.Collection) (*[]customDataStructs.Todo, error) {
+func UpdateTodo(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *mongo.Collection) (*[]customDataStructs.Todo, error) {
 	// Initialize an empty todo
 	var todoToUpdate customDataStructs.Todo
 	var updatedTodoInSlice []customDataStructs.Todo
@@ -20,7 +21,8 @@ func UpdateTask(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *
 	// Find and store the id whose status is to be toggled to struct todo
 	err := collectionTodos.FindOne(ctx, filter).Decode(&todoToUpdate)
 	if err != nil {
-		return &updatedTodoInSlice, err
+		errResponse := serverErrors.New(serverErrors.RetreivalError, "")
+		return &updatedTodoInSlice, errResponse
 	}
 
 	// Toggle its current state & store it
@@ -33,11 +35,13 @@ func UpdateTask(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *
 	updateResult, err := collectionTodos.UpdateOne(ctx, filter, update)
 
 	if err != nil {
-		return &updatedTodoInSlice, err
+		errResponse := serverErrors.New(serverErrors.UpdateError, "")
+		return &updatedTodoInSlice, errResponse
 	}
 
 	if updateResult.MatchedCount != updateResult.ModifiedCount {
-		return &updatedTodoInSlice, err
+		errResponse := serverErrors.New(serverErrors.UpdateError, "")
+		return &updatedTodoInSlice, errResponse
 	}
 
 	updatedTodoInSlice = append(updatedTodoInSlice, todoToUpdate)
