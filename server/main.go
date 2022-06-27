@@ -130,8 +130,8 @@ func main() {
 			return err
 		}
 
-		// Otherwise return this success message to client
-		return c.JSON("Todo deleted successfully")
+		// return updated todos to client
+		return c.JSON(todos)
 	})
 
 	// To update specific task list from the todos list

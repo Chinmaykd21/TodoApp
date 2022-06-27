@@ -30,15 +30,24 @@ export const ShowTodo = ({
         data?.map((todo) => {
           return (
             <List.Item
-              onClick={() => toggleTodo(todo.todoId)}
               key={`todo__${todo.todoId}`}
               icon={
                 todo.isCompleted ? (
-                  <ThemeIcon color="teal" size={24} radius="xl">
+                  <ThemeIcon
+                    onClick={() => toggleTodo(todo.todoId)}
+                    color="teal"
+                    size={24}
+                    radius="xl"
+                  >
                     <CheckCircleFillIcon size={20} />
                   </ThemeIcon>
                 ) : (
-                  <ThemeIcon color="gray" size={24} radius="xl">
+                  <ThemeIcon
+                    onClick={() => toggleTodo(todo.todoId)}
+                    color="gray"
+                    size={24}
+                    radius="xl"
+                  >
                     <CheckCircleFillIcon size={20} />
                   </ThemeIcon>
                 )
@@ -47,7 +56,7 @@ export const ShowTodo = ({
               <h1>{todo.title}</h1>
               <EditTodo todo={todo} mutate={mutate} />
               {/* TODO: Create these components */}
-              <DeleteTodo />
+              <DeleteTodo todo={todo} mutate={mutate} />
             </List.Item>
           );
         })}
