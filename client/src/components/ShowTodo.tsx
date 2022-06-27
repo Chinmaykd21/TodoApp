@@ -3,6 +3,8 @@ import { CheckCircleFillIcon } from "@primer/octicons-react";
 import { KeyedMutator } from "swr";
 import { Todo } from "../interfaces/todoInterface";
 import { ENDPOINT } from "../utilities/utilities";
+import { DeleteTodo } from "./DeleteTodo";
+import { EditTodo } from "./EditTodo";
 
 export const ShowTodo = ({
   data,
@@ -43,6 +45,9 @@ export const ShowTodo = ({
               }
             >
               <h1>{todo.title}</h1>
+              <EditTodo todo={todo} mutate={mutate} />
+              {/* TODO: Create these components */}
+              <DeleteTodo />
             </List.Item>
           );
         })}
