@@ -10,6 +10,7 @@ import (
 	"github.com/Chinmaykd21/TodoApp/server/crudData"
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
 	"github.com/Chinmaykd21/TodoApp/server/models"
+	"github.com/Chinmaykd21/TodoApp/server/serverErrors"
 	"github.com/Chinmaykd21/TodoApp/server/utilities"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -134,7 +135,43 @@ func main() {
 		return c.JSON(todos)
 	})
 
-	// To update specific task list from the todos list
+	// API route to edit specific task list from todos list
+	app.Patch("/api/todos/:id?/edit", func(c *fiber.Ctx) error {
+		// Converting string todoId to int
+		todoId, errResponse := utilities.ParsingStringToInt(c, "id")
+
+		// If there are any error while doing type conversion return
+		// custom error called InvalidID to the client
+		if errResponse != nil {
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
+			return err
+		}
+
+		// initializing an empty todo & attaching the todo coming from
+		// request body to that todo
+		todo := &customDataStructs.Todo{}
+
+		// If it returns an error, return that error
+		if err := c.BodyParser(todo); err != nil {
+			errResponse := serverErrors.New(serverErrors.BodyParse, "")
+			return errResponse
+		}
+
+		// Update the todo associate with the todo
+		editedTodo, errResponse := crudData.EditTodo(ctx, c, todoId, *todo, todos, collectionTodos)
+
+		// If there is no error then find this record & update its status
+		if errResponse != nil {
+			c.Status(http.StatusUnprocessableEntity)
+			_, err = c.WriteString(errResponse.Error())
+			return err
+		}
+
+		return c.JSON(editedTodo)
+	})
+
+	// API route to update specific task list completed state from the todos list
 	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
 		// Converting string todoId to int
 		todoId, errResponse := utilities.ParsingStringToInt(c, "id")
