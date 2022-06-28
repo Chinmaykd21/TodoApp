@@ -14,7 +14,7 @@ import (
 func GetAllTodos(ctx context.Context, c *fiber.Ctx, todos []customDataStructs.Todo, collectionTodos *mongo.Collection) (*[]customDataStructs.Todo, error) {
 	cursor, err := collectionTodos.Find(ctx, bson.M{})
 	if err != nil {
-		errResponse := serverErrors.New(serverErrors.RetreivalError, "")
+		errResponse := serverErrors.New(serverErrors.RetreivalError, err.Error())
 		return &todos, errResponse
 	}
 
@@ -24,7 +24,7 @@ func GetAllTodos(ctx context.Context, c *fiber.Ctx, todos []customDataStructs.To
 	}()
 
 	if err = cursor.All(ctx, &todos); err != nil {
-		errResponse := serverErrors.New(serverErrors.RetreivalError, "")
+		errResponse := serverErrors.New(serverErrors.RetreivalError, err.Error())
 		return &todos, errResponse
 	}
 

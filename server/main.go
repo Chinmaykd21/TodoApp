@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Chinmaykd21/TodoApp/server/crudData"
 	"github.com/Chinmaykd21/TodoApp/server/customDataStructs"
@@ -16,6 +17,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
+
+// Default time to set for a context to be expired.
+const defaultTimeout = 5 * time.Second
 
 func main() {
 	// Create the fiber app instance
@@ -37,9 +41,12 @@ func main() {
 	todos := []customDataStructs.Todo{}
 
 	// TODO: Why does this line causes "context deadline exceeded" error?
-	// ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
-	// defer cancel()
-	ctx := context.TODO()
+	// The reason being, this context was shared across all the API requests.
+	// Each user needs to have their own context with its own timeout, & if
+	// that API call does not get a response before the context dies,
+	// that request should fail.
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
 
 	// Get the client & todo collection
 	client, collectionTodos := models.CreatConnection(ctx)
@@ -55,6 +62,9 @@ func main() {
 
 	// API route to get all todos from todos mongoDB collection
 	app.Get("/api/todos", func(c *fiber.Ctx) error {
+
+		ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+		defer cancel()
 
 		// Get all todos from todos mongoDB collection
 		obtainedTodos, errResponse := crudData.GetAllTodos(ctx, c, todos, collectionTodos)
@@ -77,6 +87,9 @@ func main() {
 	// API route to add a new todo list to todos mongoDB collection
 	// & return all todos to client
 	app.Post("/api/todos", func(c *fiber.Ctx) error {
+
+		ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+		defer cancel()
 
 		// Getting todos before adding new todo to create a unique
 		// id for new todo
@@ -108,6 +121,10 @@ func main() {
 
 	// API route to delete matching todo from todos mongoDB collection
 	app.Delete("/api/todos/:id?/delete", func(c *fiber.Ctx) error {
+
+		ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+		defer cancel()
+
 		// Converting string todoId to int
 		todoId, errResponse := utilities.ParsingStringToInt(c, "id")
 
@@ -137,6 +154,10 @@ func main() {
 
 	// API route to edit specific task list from todos list
 	app.Patch("/api/todos/:id?/edit", func(c *fiber.Ctx) error {
+
+		ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+		defer cancel()
+
 		// Converting string todoId to int
 		todoId, errResponse := utilities.ParsingStringToInt(c, "id")
 
@@ -173,6 +194,10 @@ func main() {
 
 	// API route to update specific task list completed state from the todos list
 	app.Patch("/api/todos/:id?/toggle", func(c *fiber.Ctx) error {
+
+		ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+		defer cancel()
+
 		// Converting string todoId to int
 		todoId, errResponse := utilities.ParsingStringToInt(c, "id")
 
