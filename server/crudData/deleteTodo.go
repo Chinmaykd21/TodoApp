@@ -17,12 +17,12 @@ func DeleteTodo(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *
 	deletedResult, err := collectionTodos.DeleteOne(ctx, filter)
 
 	if err != nil {
-		errResponse := serverErrors.New(serverErrors.RecordsNotFound, "")
+		errResponse := serverErrors.New(serverErrors.RecordsNotFound, err.Error())
 		return errResponse
 	}
 
 	if deletedResult.DeletedCount == 0 {
-		errResponse := serverErrors.New(serverErrors.RecordsNotFound, "")
+		errResponse := serverErrors.New(serverErrors.RecordsNotFound, err.Error())
 		return errResponse
 	}
 

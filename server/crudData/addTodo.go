@@ -16,7 +16,7 @@ func AddTodo(ctx context.Context, c *fiber.Ctx, todos []customDataStructs.Todo, 
 
 	// If it returns an error, return that error
 	if err := c.BodyParser(todo); err != nil {
-		errResponse := serverErrors.New(serverErrors.BodyParse, "")
+		errResponse := serverErrors.New(serverErrors.BodyParse, err.Error())
 		return errResponse
 	}
 
@@ -33,7 +33,7 @@ func AddTodo(ctx context.Context, c *fiber.Ctx, todos []customDataStructs.Todo, 
 
 	if err != nil {
 		// TODO: should we use panic & recovery instead of log.fatal?
-		errResponse := serverErrors.New(serverErrors.InsertError, "")
+		errResponse := serverErrors.New(serverErrors.InsertError, err.Error())
 		return errResponse
 	}
 

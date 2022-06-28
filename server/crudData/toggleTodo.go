@@ -21,7 +21,7 @@ func UpdateTodo(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *
 	// Find and store the id whose status is to be toggled to struct todo
 	err := collectionTodos.FindOne(ctx, filter).Decode(&todoToUpdate)
 	if err != nil {
-		errResponse := serverErrors.New(serverErrors.RetreivalError, "")
+		errResponse := serverErrors.New(serverErrors.RetreivalError, err.Error())
 		return &updatedTodoInSlice, errResponse
 	}
 
@@ -35,12 +35,12 @@ func UpdateTodo(ctx context.Context, c *fiber.Ctx, todoId int, collectionTodos *
 	updateResult, err := collectionTodos.UpdateOne(ctx, filter, update)
 
 	if err != nil {
-		errResponse := serverErrors.New(serverErrors.UpdateError, "")
+		errResponse := serverErrors.New(serverErrors.UpdateError, err.Error())
 		return &updatedTodoInSlice, errResponse
 	}
 
 	if updateResult.MatchedCount != updateResult.ModifiedCount {
-		errResponse := serverErrors.New(serverErrors.UpdateError, "")
+		errResponse := serverErrors.New(serverErrors.UpdateError, err.Error())
 		return &updatedTodoInSlice, errResponse
 	}
 

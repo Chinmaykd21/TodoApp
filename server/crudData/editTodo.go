@@ -20,7 +20,7 @@ func EditTodo(ctx context.Context, c *fiber.Ctx, todoId int, todo customDataStru
 	// Find and store the id whose status is to be toggled to struct todo
 	err := collectionTodos.FindOne(ctx, filter).Decode(&todoToEdit)
 	if err != nil {
-		errResponse := serverErrors.New(serverErrors.RetreivalError, "")
+		errResponse := serverErrors.New(serverErrors.RetreivalError, err.Error())
 		return &editedTodoInSlice, errResponse
 	}
 
@@ -34,12 +34,12 @@ func EditTodo(ctx context.Context, c *fiber.Ctx, todoId int, todo customDataStru
 	updateResult, err := collectionTodos.UpdateOne(ctx, filter, update)
 
 	if err != nil {
-		errResponse := serverErrors.New(serverErrors.UpdateError, "")
+		errResponse := serverErrors.New(serverErrors.UpdateError, err.Error())
 		return &editedTodoInSlice, errResponse
 	}
 
 	if updateResult.MatchedCount != updateResult.ModifiedCount {
-		errResponse := serverErrors.New(serverErrors.UpdateError, "")
+		errResponse := serverErrors.New(serverErrors.UpdateError, err.Error())
 		return &editedTodoInSlice, errResponse
 	}
 
