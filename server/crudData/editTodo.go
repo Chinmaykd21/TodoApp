@@ -19,6 +19,7 @@ func EditTodo(ctx context.Context, c *fiber.Ctx, todoId int, todo customDataStru
 
 	// Find and store the id whose status is to be toggled to struct todo
 	err := collectionTodos.FindOne(ctx, filter).Decode(&todoToEdit)
+
 	if err != nil {
 		errResponse := serverErrors.New(serverErrors.RetreivalError, err.Error())
 		return &editedTodoInSlice, errResponse
@@ -26,6 +27,7 @@ func EditTodo(ctx context.Context, c *fiber.Ctx, todoId int, todo customDataStru
 
 	// Update condition
 	update := bson.D{{Key: "$set", Value: bson.D{
+		{Key: "todoId", Value: todoId},
 		{Key: "title", Value: todoToEdit.Title},
 		{Key: "body", Value: todoToEdit.Body},
 		{Key: "isCompleted", Value: todoToEdit.IsCompleted}}}}
@@ -38,8 +40,13 @@ func EditTodo(ctx context.Context, c *fiber.Ctx, todoId int, todo customDataStru
 		return &editedTodoInSlice, errResponse
 	}
 
+	if updateResult.ModifiedCount == 0 {
+		errResponse := serverErrors.New(serverErrors.UpdateError, "Modified records are 0. No Records have been updated")
+		return &editedTodoInSlice, errResponse
+	}
+
 	if updateResult.MatchedCount != updateResult.ModifiedCount {
-		errResponse := serverErrors.New(serverErrors.UpdateError, err.Error())
+		errResponse := serverErrors.New(serverErrors.UpdateError, "Matched & modified records have different counts")
 		return &editedTodoInSlice, errResponse
 	}
 

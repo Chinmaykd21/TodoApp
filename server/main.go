@@ -81,9 +81,6 @@ func main() {
 		return c.JSON(obtainedTodos)
 	})
 
-	// TODO: Make this function more efficient. Doing 2 calls to the
-	// same collection to get the data seems extremely inefficient
-
 	// API route to add a new todo list to todos mongoDB collection
 	// & return all todos to client
 	app.Post("/api/todos", func(c *fiber.Ctx) error {
@@ -175,7 +172,7 @@ func main() {
 
 		// If it returns an error, return that error
 		if err := c.BodyParser(todo); err != nil {
-			errResponse := serverErrors.New(serverErrors.BodyParse, "")
+			errResponse := serverErrors.New(serverErrors.BodyParse, err.Error())
 			return errResponse
 		}
 

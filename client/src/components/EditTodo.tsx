@@ -24,13 +24,16 @@ export const EditTodo = ({
 
   // handlesubmit values
   const handleSubmit = async (values: { title: string; body: string }) => {
-    const editedTodo = await fetch(`${ENDPOINT}/api/todos/edit`, {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify(values),
-    }).then((res) => res.json());
+    const editedTodo = await fetch(
+      `${ENDPOINT}/api/todos/${todo.todoId}/edit`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify(values),
+      }
+    ).then((res) => res.json());
 
     mutate(editedTodo);
 
