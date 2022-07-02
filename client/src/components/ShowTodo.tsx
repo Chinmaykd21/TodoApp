@@ -61,6 +61,9 @@ export const ShowTodo = ({
                 </Grid.Col>
                 <Grid.Col span={2} mt={11}>
                   View Task
+                  {/* TODO: Implement an API call which when called
+                  should return that corresponding task information
+                  in a modal if you prefer */}
                 </Grid.Col>
                 <Grid.Col span={2} mt={11} ml={5}>
                   <EditTodo todo={todo} mutate={mutate} />
