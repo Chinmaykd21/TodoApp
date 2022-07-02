@@ -25,7 +25,9 @@ export const AddTodo = ({ mutate }: { mutate: KeyedMutator<Todo[]> }) => {
         "Content-type": "application/json",
       },
       body: JSON.stringify(values),
-    }).then((res) => res.json());
+    })
+      .then((res) => res.json())
+      .catch((reason) => console.log(reason));
 
     mutate(addedTodo);
 

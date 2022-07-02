@@ -1,4 +1,4 @@
-import { List, ThemeIcon } from "@mantine/core";
+import { Grid, List, ThemeIcon } from "@mantine/core";
 import { CheckCircleFillIcon } from "@primer/octicons-react";
 import { KeyedMutator } from "swr";
 import { Todo } from "../interfaces/todoInterface";
@@ -19,7 +19,9 @@ export const ShowTodo = ({
       headers: {
         "Content-type": "application/json",
       },
-    }).then((res) => res.json());
+    })
+      .then((res) => res.json())
+      .catch((reason) => console.log(reason));
 
     mutate(updatedTodo);
   };
@@ -53,10 +55,20 @@ export const ShowTodo = ({
                 )
               }
             >
-              <h1>{todo.title}</h1>
-              <EditTodo todo={todo} mutate={mutate} />
-              {/* TODO: Create these components */}
-              <DeleteTodo todo={todo} mutate={mutate} />
+              <Grid>
+                <Grid.Col span={5}>
+                  <h2>{todo.title}</h2>
+                </Grid.Col>
+                <Grid.Col span={2} mt={11}>
+                  View Task
+                </Grid.Col>
+                <Grid.Col span={2} mt={11} ml={5}>
+                  <EditTodo todo={todo} mutate={mutate} />
+                </Grid.Col>
+                <Grid.Col span={2} mt={11} ml={20}>
+                  <DeleteTodo todo={todo} mutate={mutate} />
+                </Grid.Col>
+              </Grid>
             </List.Item>
           );
         })}

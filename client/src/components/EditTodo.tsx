@@ -33,7 +33,9 @@ export const EditTodo = ({
         },
         body: JSON.stringify(values),
       }
-    ).then((res) => res.json());
+    )
+      .then((res) => res.json())
+      .catch((reason) => console.log(reason));
 
     mutate(editedTodo);
 

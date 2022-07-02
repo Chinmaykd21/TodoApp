@@ -74,7 +74,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusNotFound)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		// Return found todos to the client
@@ -97,7 +97,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusNotFound)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		// Add new todo to todos mongoDB collection
@@ -109,7 +109,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		// Return new todos to client
@@ -130,7 +130,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		// Use the converted todoId to delete the todo from todos
@@ -142,7 +142,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusNotFound)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		// return updated todos to client
@@ -163,7 +163,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		// initializing an empty todo & attaching the todo coming from
@@ -173,17 +173,16 @@ func main() {
 		// If it returns an error, return that error
 		if err := c.BodyParser(todo); err != nil {
 			errResponse := serverErrors.New(serverErrors.BodyParse, err.Error())
-			return errResponse
+			return c.JSON(errResponse)
 		}
 
 		// Update the todo associate with the todo
 		editedTodo, errResponse := crudData.EditTodo(ctx, c, todoId, *todo, todos, collectionTodos)
 
-		// If there is no error then find this record & update its status
 		if errResponse != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		return c.JSON(editedTodo)
@@ -203,7 +202,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		// Use the converted todoId to update the matching todo in
@@ -214,7 +213,7 @@ func main() {
 		if errResponse != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			_, err = c.WriteString(errResponse.Error())
-			return err
+			return c.JSON(err)
 		}
 
 		return c.JSON(updatedRecord)

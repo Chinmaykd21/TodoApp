@@ -19,7 +19,9 @@ export const DeleteTodo = ({
           "Content-type": "application/json",
         },
       }
-    ).then((res) => res.json());
+    )
+      .then((res) => res.json())
+      .catch((reason) => console.log(reason));
 
     mutate(deleteTodo);
   };
